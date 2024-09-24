@@ -28,8 +28,15 @@ func NewCLI() *cli.App {
 			Name:        "add-timestamp",
 			Aliases:     []string{"t"},
 			Value:       false,
-			Usage:       "append timestamp to output directory",
+			Usage:       "append RFC3339 timestamp to output directory",
 			Destination: &appC.timestamp,
+		},
+		&cli.BoolFlag{
+			Name:        "add-timestampsimple",
+			Aliases:     []string{"ts"},
+			Value:       false,
+			Usage:       "append RFC3339 timestamp to output directory without : ",
+			Destination: &appC.timestampsimple,
 		},
 		&cli.StringFlag{
 			Name:        "filter",
