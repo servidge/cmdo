@@ -100,8 +100,8 @@ type appCfg struct {
 	credentials     map[string]*credentials // credentials loaded from inventory
 	transports      map[string]*transports  // transports loaded from inventory
 	output          string                  // output mode
-	timestamp       bool                    // append timestamp to output dir
-	timestampsimple bool                    // append timestamp to output dir without :
+	timestamp       bool                    // append RFC3339 timestamp to output dir
+	timestampsimple bool                    // append RFC3339 timestamp to output dir without :
 	outDir          string                  // output directory path
 	devFilter       string                  // pattern
 	platform        string                  // platform name
