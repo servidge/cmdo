@@ -109,6 +109,7 @@ type appCfg struct {
 	username        string                  // ssh username
 	password        string                  // ssh password
 	commands        string                  // commands to send
+	nosubfolder     bool                    // no subfolder in output
 }
 
 type respTuple struct {
@@ -395,7 +396,7 @@ func (app *appCfg) outputResult(
 		case <-doneCh:
 			return
 		case r := <-rCh:
-			if err := rw.WriteResponse(r.resp, r.name); err != nil {
+			if err := rw.WriteResponse(r.resp, r.name, app.nosubfolder); err != nil {
 				log.Errorf("error while writing the response: %v", err)
 
 				// don't defer the wg.Done because it needs to always be decremented at each

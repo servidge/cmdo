@@ -40,6 +40,13 @@ func NewCLI() *cli.App {
 			Usage:       "append RFC3339 timestamp to output directory without : \n\te.g. Outputdir: outputs_" + strings.ReplaceAll(time.Now().Format(time.RFC3339), ":", ""),
 			Destination: &appC.timestampsimple,
 		},
+		&cli.BoolFlag{
+			Name:        "output-as-filename",
+			Aliases:     []string{"flat"},
+			Value:       false,
+			Usage:       "No Subfolder in output directory",
+			Destination: &appC.nosubfolder,
+		},
 		&cli.StringFlag{
 			Name:        "filter",
 			Aliases:     []string{"f"},
