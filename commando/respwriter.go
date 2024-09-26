@@ -19,7 +19,7 @@ const (
 )
 
 type responseWriter interface {
-	WriteResponse(r []interface{}, name string, nosubfolder bool) error
+	WriteResponse(r []interface{}, name string, nosubfolder bool, fileend string) error
 }
 
 func (app *appCfg) newResponseWriter(f string) responseWriter {
@@ -101,7 +101,7 @@ func (w *consoleWriter) writeSuccess(r []interface{}, name string) error {
 	return nil
 }
 
-func (w *consoleWriter) WriteResponse(r []interface{}, name string, nosubfolder bool) error {
+func (w *consoleWriter) WriteResponse(r []interface{}, name string, nosubfolder bool, fileend string) error {
 	if r == nil {
 		return w.writeFailure(name)
 	}
@@ -114,7 +114,7 @@ type fileWriter struct {
 	dir string // output dir name
 }
 
-func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder bool) error {
+func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder bool, fileend string) error {
 	var outDir string
 
 	if nosubfolder {
@@ -127,6 +127,11 @@ func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder boo
 		return err
 	}
 
+	fileend = sanitizeFileName(fileend)   // replace unsafe chars from a file ending
+	if !strings.HasPrefix(fileend, ".") { // if fileending starts not with . add it
+		fileend = "." + fileend
+	}
+
 	for _, mr := range r {
 		switch respObj := mr.(type) {
 		case *response.MultiResponse:
@@ -135,9 +140,9 @@ func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder boo
 
 				var fileName string
 				if nosubfolder {
-					fileName = fmt.Sprintf("%s_%s", name, c)
+					fileName = fmt.Sprintf("%s_%s"+fileend, name, c)
 				} else {
-					fileName = c
+					fileName = c + fileend
 				}
 
 				rb := []byte(resp.Result)
@@ -178,7 +183,7 @@ func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder boo
 	return nil
 }
 
-// sanitizeFileName ensures that file name doesn't contain invalid characters.
+// sanitizeFileName ensures that file name and ending doesn't contain invalid characters.
 func sanitizeFileName(s string) string {
 	// remove quotes and commas first
 	r := strings.NewReplacer(

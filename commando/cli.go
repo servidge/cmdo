@@ -48,6 +48,13 @@ func NewCLI() *cli.App {
 			Destination: &appC.nosubfolder,
 		},
 		&cli.StringFlag{
+			Name:        "add-fileend",
+			Aliases:     []string{"fe"},
+			Value:       "",
+			Usage:       "Filename extension without dot as suffix to generated output files. ",
+			Destination: &appC.fileend,
+		},
+		&cli.StringFlag{
 			Name:        "filter",
 			Aliases:     []string{"f"},
 			Value:       "",
