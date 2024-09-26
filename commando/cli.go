@@ -2,6 +2,8 @@ package commando
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/urfave/cli/v2"
 )
@@ -28,8 +30,15 @@ func NewCLI() *cli.App {
 			Name:        "add-timestamp",
 			Aliases:     []string{"t"},
 			Value:       false,
-			Usage:       "append timestamp to output directory",
+			Usage:       "append RFC3339 timestamp to output directory.  \n\te.g. Outputdir: outputs_" + time.Now().Format(time.RFC3339),
 			Destination: &appC.timestamp,
+		},
+		&cli.BoolFlag{
+			Name:        "add-timestampsimple",
+			Aliases:     []string{"ts"},
+			Value:       false,
+			Usage:       "append RFC3339 timestamp to output directory without : \n\te.g. Outputdir: outputs_" + strings.ReplaceAll(time.Now().Format(time.RFC3339), ":", ""),
+			Destination: &appC.timestampsimple,
 		},
 		&cli.StringFlag{
 			Name:        "filter",

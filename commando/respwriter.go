@@ -26,8 +26,12 @@ func (app *appCfg) newResponseWriter(f string) responseWriter {
 	switch f {
 	case fileOutput:
 		parentDir := "outputs"
-		if app.timestamp {
-			parentDir = parentDir + "_" + time.Now().Format(time.RFC3339)
+		if app.timestamp && !app.timestampsimple {
+			parentDir = parentDir + "_" + time.Now().Format(time.RFC3339) // append RFC3339 timestamp to output
+		}
+
+		if app.timestampsimple {
+			parentDir = parentDir + "_" + strings.ReplaceAll(time.Now().Format(time.RFC3339), ":", "") // append RFC3339 timestamp withot : to output
 		}
 
 		app.outDir = parentDir
