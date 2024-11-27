@@ -128,7 +128,7 @@ func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder boo
 	}
 
 	fileend = sanitizeFileName(fileend)   // replace unsafe chars from a file ending
-	if !strings.HasPrefix(fileend, ".") { // if fileending starts not with . add it
+	if len(fileend) != 0 && !strings.HasPrefix(fileend, ".") { // if fileending is larger than 0 and starts not with . add it
 		fileend = "." + fileend
 	}
 
