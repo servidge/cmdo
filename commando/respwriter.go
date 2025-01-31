@@ -19,7 +19,7 @@ const (
 )
 
 type responseWriter interface {
-	WriteResponse(r []interface{}, name string) error
+	WriteResponse(r []interface{}, name string, nosubfolder bool, fileend string) error
 }
 
 func (app *appCfg) newResponseWriter(f string) responseWriter {
@@ -101,7 +101,7 @@ func (w *consoleWriter) writeSuccess(r []interface{}, name string) error {
 	return nil
 }
 
-func (w *consoleWriter) WriteResponse(r []interface{}, name string) error {
+func (w *consoleWriter) WriteResponse(r []interface{}, name string, nosubfolder bool, fileend string) error {
 	if r == nil {
 		return w.writeFailure(name)
 	}
@@ -114,10 +114,22 @@ type fileWriter struct {
 	dir string // output dir name
 }
 
-func (w *fileWriter) WriteResponse(r []interface{}, name string) error {
-	outDir := path.Join(w.dir, name)
+func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder bool, fileend string) error {
+	var outDir string
+
+	if nosubfolder {
+		outDir = w.dir
+	} else {
+		outDir = path.Join(w.dir, name)
+	}
+
 	if err := os.MkdirAll(outDir, filePermissions); err != nil {
 		return err
+	}
+
+	fileend = sanitizeFileName(fileend)                        // replace unsafe chars from a file ending
+	if len(fileend) != 0 && !strings.HasPrefix(fileend, ".") { // if fileending is larger than 0 and starts not with . add it
+		fileend = "." + fileend
 	}
 
 	for _, mr := range r {
@@ -126,22 +138,46 @@ func (w *fileWriter) WriteResponse(r []interface{}, name string) error {
 			for _, resp := range respObj.Responses {
 				c := sanitizeFileName(resp.Input) // replace unsafe chars from a file name
 
+				var fileName string
+				if nosubfolder {
+					fileName = fmt.Sprintf("%s_%s"+fileend, name, c)
+				} else {
+					fileName = c + fileend
+				}
+
+				if len(resp.Result) == 0 || resp.Result[len(resp.Result)-1] != '\n' {
+					resp.Result += "\n"
+				}
 				rb := []byte(resp.Result)
-				if err := os.WriteFile(path.Join(outDir, c), rb, filePermissions); err != nil {
+				if err := os.WriteFile(path.Join(outDir, fileName), rb, filePermissions); err != nil {
 					return err
 				}
 			}
 		case *cfgresponse.Response:
+			var fileName string
+			if nosubfolder {
+				fileName = fmt.Sprintf("%s_%s", name, respObj.Op)
+			} else {
+				fileName = respObj.Op
+			}
+
 			rb := []byte(respObj.Result)
-			if err := os.WriteFile(path.Join(outDir, respObj.Op), rb, filePermissions); err != nil {
+			if err := os.WriteFile(path.Join(outDir, fileName), rb, filePermissions); err != nil {
 				return err
 			}
 		case *cfgresponse.DiffResponse:
+			var fileName string
+			if nosubfolder {
+				fileName = fmt.Sprintf("%s_%s", name, respObj.Op)
+			} else {
+				fileName = respObj.Op
+			}
+
 			rb := []byte(
 				fmt.Sprintf("Device Diff:\n%s\n\nSide By Side Diff:\n%s\n\nUnified Diff:\n%s",
 					respObj.DeviceDiff, respObj.SideBySideDiff(), respObj.UnifiedDiff()),
 			)
-			if err := os.WriteFile(path.Join(outDir, respObj.Op), rb, filePermissions); err != nil {
+			if err := os.WriteFile(path.Join(outDir, fileName), rb, filePermissions); err != nil {
 				return err
 			}
 		}
@@ -150,7 +186,7 @@ func (w *fileWriter) WriteResponse(r []interface{}, name string) error {
 	return nil
 }
 
-// sanitizeFileName ensures that file name doesn't contain invalid characters.
+// sanitizeFileName ensures that file name and ending doesn't contain invalid characters.
 func sanitizeFileName(s string) string {
 	// remove quotes and commas first
 	r := strings.NewReplacer(

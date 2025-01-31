@@ -37,6 +37,14 @@ func (app *appCfg) loadInventoryFromYAML(i *inventory) error {
 			device.SendCommands = cmds
 		}
 	}
+	// user-provided username & passwords (via cli flag) take precedence over inventory for the default credentials
+	app.credentials = map[string]*credentials{
+		defaultName: {
+			Username:          app.username,
+			Password:          app.password,
+			SecondaryPassword: app.password,
+		},
+	}
 
 	return nil
 }
