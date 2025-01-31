@@ -127,7 +127,7 @@ func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder boo
 		return err
 	}
 
-	fileend = sanitizeFileName(fileend)   // replace unsafe chars from a file ending
+	fileend = sanitizeFileName(fileend)                        // replace unsafe chars from a file ending
 	if len(fileend) != 0 && !strings.HasPrefix(fileend, ".") { // if fileending is larger than 0 and starts not with . add it
 		fileend = "." + fileend
 	}
@@ -145,6 +145,9 @@ func (w *fileWriter) WriteResponse(r []interface{}, name string, nosubfolder boo
 					fileName = c + fileend
 				}
 
+				if len(resp.Result) == 0 || resp.Result[len(resp.Result)-1] != '\n' {
+					resp.Result += "\n"
+				}
 				rb := []byte(resp.Result)
 				if err := os.WriteFile(path.Join(outDir, fileName), rb, filePermissions); err != nil {
 					return err
